@@ -106,6 +106,10 @@ typedef void (^RBLPopoverDelegateBlock)(RBLPopover *popover);
 // Defaults to `NO`.
 @property (nonatomic, assign) BOOL canBecomeKey;
 
+
+// additional config params
+@property NSColor *borderColor;
+
 // Designated initialiser.
 //
 // Returns a newly initialised `RBLPopover`.
@@ -183,5 +187,10 @@ typedef void (^RBLPopoverDelegateBlock)(RBLPopover *popover);
 
 // The color used to fill the shape of the background view.
 @property (nonatomic, strong) NSColor *fillColor;
+
+@property CGFloat arrowHeight;
+@property CGFloat arrowWidth;
+@property CGFloat cornerRadius;
+
 
 @end

@@ -71,6 +71,8 @@
 // The path which the view will clip to.
 @property (nonatomic) CGPathRef clippingPath;
 
+@property (nonatomic) NSColor *borderColor;
+
 @end
 
 @implementation RBLPopoverClippingView
@@ -87,11 +89,21 @@
 	if (self.clippingPath == NULL) return;
 	
 	CGContextRef currentContext = NSGraphicsContext.currentContext.graphicsPort;
+
+	if (_borderColor) {
+		CGContextBeginPath(currentContext);
+		[_borderColor set];
+		CGContextAddPath(currentContext, self.clippingPath);
+		CGContextStrokePath(currentContext);
+	}
+	
+	CGContextBeginPath(currentContext);
 	CGContextAddRect(currentContext, self.bounds);
 	CGContextAddPath(currentContext, self.clippingPath);
 	CGContextSetBlendMode(currentContext, kCGBlendModeCopy);
 	[NSColor.clearColor set];
 	CGContextEOFillPath(currentContext);
+
 }
 
 @end
@@ -321,6 +333,7 @@
 	RBLPopoverClippingView *clippingView = [[RBLPopoverClippingView alloc] initWithFrame:self.backgroundView.bounds];
 	CGPathRef clippingPath = [self.backgroundView newPopoverPathForEdge:popoverEdge inFrame:clippingView.bounds];
 	clippingView.clippingPath = clippingPath;
+	clippingView.borderColor = self.borderColor;
 	CGPathRelease(clippingPath);
 	[self.backgroundView addSubview:clippingView];
 	
@@ -452,6 +465,12 @@ static CGFloat const RBLPopoverBackgroundViewArrowWidth = 35.0;
 }
 
 - (CGPathRef)newPopoverPathForEdge:(CGRectEdge)popoverEdge inFrame:(CGRect)frame {
+	
+	CGFloat popoverArrowWidth = _arrowWidth ? : RBLPopoverBackgroundViewArrowWidth,
+		popoverArrowHeight = _arrowHeight ? : RBLPopoverBackgroundViewArrowHeight,
+		popoverCornerRadius = _cornerRadius ? : RBLPopoverBackgroundViewBorderRadius;
+	
+	
 	CGRectEdge arrowEdge = [self arrowEdgeForPopoverEdge:popoverEdge];
 	
 	CGRect contentRect = CGRectIntegral([self.class contentViewFrameForBackgroundFrame:frame popoverEdge:self.popoverEdge]);
@@ -476,67 +495,67 @@ static CGFloat const RBLPopoverBackgroundViewArrowWidth = 35.0;
 	// That is what this complete mess below does.
 	
 	if (arrowEdge == CGRectMinYEdge || arrowEdge == CGRectMaxYEdge) {
-		maxArrowX = floor(midOriginX + (RBLPopoverBackgroundViewArrowWidth / 2.0));
-		CGFloat maxPossible = (NSMaxX(contentRect) - RBLPopoverBackgroundViewBorderRadius);
+		maxArrowX = floor(midOriginX + (popoverArrowWidth / 2.0));
+		CGFloat maxPossible = (NSMaxX(contentRect) - popoverCornerRadius);
 		if (maxArrowX > maxPossible) {
 			CGFloat delta = maxArrowX - maxPossible;
 			maxArrowX = maxPossible;
-			minArrowX = maxArrowX - (RBLPopoverBackgroundViewArrowWidth - delta);
+			minArrowX = maxArrowX - (popoverArrowWidth - delta);
 		} else {
-			minArrowX = floor(midOriginX - (RBLPopoverBackgroundViewArrowWidth / 2.0));
-			if (minArrowX < RBLPopoverBackgroundViewBorderRadius) {
-				CGFloat delta = RBLPopoverBackgroundViewBorderRadius - minArrowX;
-				minArrowX = RBLPopoverBackgroundViewBorderRadius;
-				maxArrowX = minArrowX + (RBLPopoverBackgroundViewArrowWidth - (delta * 2));
+			minArrowX = floor(midOriginX - (popoverArrowWidth / 2.0));
+			if (minArrowX < popoverCornerRadius) {
+				CGFloat delta = popoverCornerRadius - minArrowX;
+				minArrowX = popoverCornerRadius;
+				maxArrowX = minArrowX + (popoverArrowWidth - (delta * 2));
 			}
 		}
 	} else {
-		minArrowY = floor(midOriginY - (RBLPopoverBackgroundViewArrowWidth / 2.0));
-		if (minArrowY < RBLPopoverBackgroundViewBorderRadius) {
-			CGFloat delta = RBLPopoverBackgroundViewBorderRadius - minArrowY;
-			minArrowY = RBLPopoverBackgroundViewBorderRadius;
-			maxArrowY = minArrowY + (RBLPopoverBackgroundViewArrowWidth - (delta * 2));
+		minArrowY = floor(midOriginY - (popoverArrowWidth / 2.0));
+		if (minArrowY < popoverCornerRadius) {
+			CGFloat delta = popoverCornerRadius - minArrowY;
+			minArrowY = popoverCornerRadius;
+			maxArrowY = minArrowY + (popoverArrowWidth - (delta * 2));
 		} else {
-			maxArrowY = floor(midOriginY + (RBLPopoverBackgroundViewArrowWidth / 2.0));
-			CGFloat maxPossible = (NSMaxY(contentRect) - RBLPopoverBackgroundViewBorderRadius);
+			maxArrowY = floor(midOriginY + (popoverArrowWidth / 2.0));
+			CGFloat maxPossible = (NSMaxY(contentRect) - popoverCornerRadius);
 			if (maxArrowY > maxPossible) {
 				CGFloat delta = maxArrowY - maxPossible;
 				maxArrowY = maxPossible;
-				minArrowY = maxArrowY - (RBLPopoverBackgroundViewArrowWidth - delta);
+				minArrowY = maxArrowY - (popoverArrowWidth - delta);
 			}
 		}
 	}
 	
 	CGMutablePathRef path = CGPathCreateMutable();
-	CGPathMoveToPoint(path, NULL, minX, floor(minY + RBLPopoverBackgroundViewBorderRadius));
+	CGPathMoveToPoint(path, NULL, minX, floor(minY + popoverCornerRadius));
 	if (arrowEdge == CGRectMinXEdge) {
 		CGPathAddLineToPoint(path, NULL, minX, minArrowY);
-		CGPathAddLineToPoint(path, NULL, floor(minX - RBLPopoverBackgroundViewArrowHeight), midOriginY);
+		CGPathAddLineToPoint(path, NULL, floor(minX - popoverArrowHeight), midOriginY);
 		CGPathAddLineToPoint(path, NULL, minX, maxArrowY);
 	}
 	
-	CGPathAddArc(path, NULL, floor(minX + RBLPopoverBackgroundViewBorderRadius), floor(minY + contentRect.size.height - RBLPopoverBackgroundViewBorderRadius), RBLPopoverBackgroundViewBorderRadius, M_PI, M_PI / 2, 1);
+	CGPathAddArc(path, NULL, floor(minX + popoverCornerRadius), floor(minY + contentRect.size.height - popoverCornerRadius), popoverCornerRadius, M_PI, M_PI / 2, 1);
 	if (arrowEdge == CGRectMaxYEdge) {
 		CGPathAddLineToPoint(path, NULL, minArrowX, maxY);
-		CGPathAddLineToPoint(path, NULL, midOriginX, floor(maxY + RBLPopoverBackgroundViewArrowHeight));
+		CGPathAddLineToPoint(path, NULL, midOriginX, floor(maxY + popoverArrowHeight));
 		CGPathAddLineToPoint(path, NULL, maxArrowX, maxY);
 	}
 	
-	CGPathAddArc(path, NULL, floor(minX + contentRect.size.width - RBLPopoverBackgroundViewBorderRadius), floor(minY + contentRect.size.height - RBLPopoverBackgroundViewBorderRadius), RBLPopoverBackgroundViewBorderRadius, M_PI / 2, 0.0, 1);
+	CGPathAddArc(path, NULL, floor(minX + contentRect.size.width - popoverCornerRadius), floor(minY + contentRect.size.height - popoverCornerRadius), popoverCornerRadius, M_PI / 2, 0.0, 1);
 	if (arrowEdge == CGRectMaxXEdge) {
 		CGPathAddLineToPoint(path, NULL, maxX, maxArrowY);
-		CGPathAddLineToPoint(path, NULL, floor(maxX + RBLPopoverBackgroundViewArrowHeight), midOriginY);
+		CGPathAddLineToPoint(path, NULL, floor(maxX + popoverArrowHeight), midOriginY);
 		CGPathAddLineToPoint(path, NULL, maxX, minArrowY);
 	}
 	
-	CGPathAddArc(path, NULL, floor(contentRect.origin.x + contentRect.size.width - RBLPopoverBackgroundViewBorderRadius), floor(minY + RBLPopoverBackgroundViewBorderRadius), RBLPopoverBackgroundViewBorderRadius, 0.0, -M_PI / 2, 1);
+	CGPathAddArc(path, NULL, floor(contentRect.origin.x + contentRect.size.width - popoverCornerRadius), floor(minY + popoverCornerRadius), RBLPopoverBackgroundViewBorderRadius, 0.0, -M_PI / 2, 1);
 	if (arrowEdge == CGRectMinYEdge) {
 		CGPathAddLineToPoint(path, NULL, maxArrowX, minY);
-		CGPathAddLineToPoint(path, NULL, midOriginX, floor(minY - RBLPopoverBackgroundViewArrowHeight));
+		CGPathAddLineToPoint(path, NULL, midOriginX, floor(minY - popoverArrowHeight));
 		CGPathAddLineToPoint(path, NULL, minArrowX, minY);
 	}
 	
-	CGPathAddArc(path, NULL, floor(minX + RBLPopoverBackgroundViewBorderRadius), floor(minY + RBLPopoverBackgroundViewBorderRadius), RBLPopoverBackgroundViewBorderRadius, -M_PI / 2, M_PI, 1);
+	CGPathAddArc(path, NULL, floor(minX + popoverCornerRadius), floor(minY + popoverCornerRadius), popoverCornerRadius, -M_PI / 2, M_PI, 1);
 	
 	return path;
 }
