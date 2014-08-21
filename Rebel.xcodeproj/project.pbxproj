@@ -614,7 +614,7 @@
 			name = RebelTests;
 			productName = RebelTests;
 			productReference = D09AE4F715C5F45300ECAD10 /* RebelTests.octest */;
-			productType = "com.apple.product-type.bundle";
+			productType = "com.apple.product-type.bundle.ocunit-test";
 		};
 /* End PBXNativeTarget section */
 

@@ -32,7 +32,7 @@
 	CGFloat widthScale = CGImageGetWidth(image) / self.size.width;
 	CGFloat heightScale = CGImageGetHeight(image) / self.size.height;
 
-	NSEdgeInsets insets = self.capInsets;
+	NSEdgeInsets insets = self.rblCapInsets;
 
 	// TODO: Cache the nine-part images for this common case of wanting to draw
 	// the whole source image.
@@ -147,7 +147,7 @@
 
 - (id)copyWithZone:(NSZone *)zone {
 	RBLResizableImage *image = [super copyWithZone:zone];
-	image.capInsets = self.capInsets;
+	image.rblCapInsets = self.rblCapInsets;
 	return image;
 }
 
@@ -157,7 +157,7 @@
 	self = [super initWithCoder:coder];
 	if (self == nil) return nil;
 
-	self.capInsets = NSEdgeInsetsMake(
+	self.rblCapInsets = NSEdgeInsetsMake(
 		[coder decodeDoubleForKey:@"capInsetTop"],
 		[coder decodeDoubleForKey:@"capInsetLeft"],
 		[coder decodeDoubleForKey:@"capInsetBottom"],
@@ -170,10 +170,10 @@
 - (void)encodeWithCoder:(NSCoder *)coder {
 	[super encodeWithCoder:coder];
 
-	[coder encodeDouble:self.capInsets.top forKey:@"capInsetTop"];
-	[coder encodeDouble:self.capInsets.left forKey:@"capInsetLeft"];
-	[coder encodeDouble:self.capInsets.bottom forKey:@"capInsetBottom"];
-	[coder encodeDouble:self.capInsets.right forKey:@"capInsetRight"];
+	[coder encodeDouble:self.rblCapInsets.top forKey:@"capInsetTop"];
+	[coder encodeDouble:self.rblCapInsets.left forKey:@"capInsetLeft"];
+	[coder encodeDouble:self.rblCapInsets.bottom forKey:@"capInsetBottom"];
+	[coder encodeDouble:self.rblCapInsets.right forKey:@"capInsetRight"];
 }
 
 #pragma mark NSObject
@@ -183,8 +183,8 @@
 	if (![image isKindOfClass:RBLResizableImage.class]) return NO;
 	if (![super isEqual:image]) return NO;
 
-	NSEdgeInsets a = self.capInsets;
-	NSEdgeInsets b = image.capInsets;
+	NSEdgeInsets a = self.rblCapInsets;
+	NSEdgeInsets b = image.rblCapInsets;
 
 	if (fabs(a.left - b.left) > 0.1) return NO;
 	if (fabs(a.top - b.top) > 0.1) return NO;
@@ -195,7 +195,7 @@
 }
 
 - (NSString *)description {
-	NSEdgeInsets insets = self.capInsets;
+	NSEdgeInsets insets = self.rblCapInsets;
 	return [NSString stringWithFormat:@"<%@: %p>{ size = %@, capInsets = (%f, %f, %f, %f) }", self.class, self, NSStringFromSize(self.size), insets.top, insets.left, insets.bottom, insets.right];
 }
 
